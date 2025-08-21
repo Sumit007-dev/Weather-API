@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Weather App</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Font Awesome CDN -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="card">
+    <div class="search">
+      <input type="text" placeholder="Enter city name" spellcheck="false">
+      <button><img src="https://img.icons8.com/ios-filled/50/000000/search.png" alt="Search Icon"></button>
+    </div>
+
+    <div class="error" style="display: none;">
+      <p>Invalid city name</p>
+    </div>
+
+    <div class="weather" style="display: none;">
+      <i class="fas fa-sun weather-icon"></i>
+      <h1 class="temp">--°C</h1>
+      <p class="temp-label">Feels Like: --°C</p>
+      <div class="city">--</div>
+      <div class="details">
+        <div class="col">
+          <i class="fas fa-tint icon"></i>
+          <p class="humidity">--%</p>
+          <p>Humidity</p>
+        </div>
+        <div class="col">
+          <i class="fas fa-wind icon"></i>
+          <p class="wind">-- km/h</p>
+          <p>Wind Speed</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const apiKey = "14e2554e67e306db01cf2b54b572f2c9";
+    const apiUrl = "https://api.openweathermap.org/data/2.5/weather?q=";
+
+    const searchBox = document.querySelector(".search input");
+    const searchBtn = document.querySelector(".search button");
+    const weatherIcon = document.querySelector(".weather-icon");
+
+    async function checkWeather(city) {
+      if (city === "") return;
+
+      // API call to get the weather data
+      const response = await fetch(apiUrl + city + `&appid=${apiKey}&units=metric`);
+      const data = await response.json();
+
+      console.log("API Data:", data); // Debugging: Log the whole API response
+
+      if (data.cod === "404") {
+        document.querySelector(".error").style.display = "block";
+        document.querySelector(".weather").style.display = "none";
+        return;
+      }
+
+      document.querySelector(".city").innerHTML = data.name;
+
+      // ✅ Use "feels_like" temperature
+      let feelsLike = data.main.feels_like;
+      let dayTemp = data.main.temp;  // This is the "day" temperature
+      let humidity = data.main.humidity;  // Humidity
+      let windSpeed = data.wind.speed;  // Wind speed
+      let weatherCondition = data.weather[0].main; // Weather condition
+
+      // Handle missing or undefined data
+      if (feelsLike === undefined || feelsLike === null) {
+        feelsLike = "Data Unavailable";
+      }
+
+      if (dayTemp === undefined || dayTemp === null) {
+        dayTemp = "Data Unavailable";
+      }
+
+      // Displaying the temperatures
+      document.querySelector(".temp").innerHTML = `${dayTemp.toFixed(1)} °C`;  // Display day temp
+      document.querySelector(".temp-label").innerHTML = `Feels Like: ${feelsLike.toFixed(1)} °C`;  // Display feels like temp
+
+      // Display humidity and wind speed
+      document.querySelector(".humidity").innerHTML = humidity + "%";
+      document.querySelector(".wind").innerHTML = windSpeed + " km/h";
+
+      // Update weather icon based on weather condition
+      if (weatherCondition === "Clear") {
+        weatherIcon.className = "fas fa-sun weather-icon";  // Sun icon for clear weather
+      } else if (weatherCondition === "Clouds") {
+        weatherIcon.className = "fas fa-cloud weather-icon";  // Cloud icon for cloudy weather
+      } else if (weatherCondition === "Rain") {
+        weatherIcon.className = "fas fa-cloud-rain weather-icon";  // Rain icon for rainy weather
+      } else if (weatherCondition === "Drizzle") {
+        weatherIcon.className = "fas fa-cloud-showers-heavy weather-icon";  // Showers icon for drizzle
+      } else if (weatherCondition === "Mist") {
+        weatherIcon.className = "fas fa-smog weather-icon";  // Smog icon for misty weather
+      } else {
+        weatherIcon.className = "fas fa-cloud weather-icon";  // Default cloudy icon
+      }
+
+      // Display the weather details section
+      document.querySelector(".weather").style.display = "block";
+      document.querySelector(".error").style.display = "none";
+    }
+
+    // When search button is clicked, check weather
+    searchBtn.addEventListener("click", () => {
+      checkWeather(searchBox.value.trim());
+    });
+  </script>
+</body>
+</html>
